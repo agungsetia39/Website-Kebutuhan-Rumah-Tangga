@@ -54,11 +54,22 @@ const els = {
   clearInputHistoryBtn: document.querySelector("#clearInputHistoryBtn"),
   clearOutputHistoryBtn: document.querySelector("#clearOutputHistoryBtn"),
   pageTitle: document.querySelector("#pageTitle"),
+  syncStatus: document.querySelector("#syncStatus"),
   navItems: document.querySelectorAll(".nav-item"),
   searchBarang: document.querySelector("#searchBarang"),
   filterKategori: document.querySelector("#filterKategori"),
   barangTable: document.querySelector("#barangTable")
 };
+
+let remoteSyncEnabled = false;
+let remoteUpdatedAt = null;
+let remoteSaveTimer = null;
+let syncPollTimer = null;
+
+function setSyncStatus(message, mode = "idle") {
+  els.syncStatus.textContent = message;
+  els.syncStatus.dataset.syncMode = mode;
+}
 
 function readStorage(key, fallback) {
   try {
@@ -118,7 +129,43 @@ function loadManualData() {
   state.keuangan.pemasukanBulanan = Number(savedFinance.pemasukanBulanan) || 0;
 }
 
-function saveManualData() {
+function createStateSnapshot() {
+  return {
+    barang: state.barang,
+    riwayatStok: state.riwayatStok.slice(0, 20),
+    riwayatOutputStok: state.riwayatOutputStok.slice(0, 20),
+    deletedBarangIds: state.deletedBarangIds,
+    keuangan: state.keuangan
+  };
+}
+
+function applyStateSnapshot(snapshot) {
+  if (!snapshot || typeof snapshot !== "object") {
+    return false;
+  }
+
+  if (Array.isArray(snapshot.barang)) {
+    state.barang = snapshot.barang.map((item) => ({
+      ...item,
+      id: Number(item.id),
+      kategoriId: Number(item.kategoriId),
+      stok: Number(item.stok) || 0,
+      minimum: Number(item.minimum) || 0,
+      harga: Number(item.harga) || 0
+    }));
+  }
+  state.riwayatStok = Array.isArray(snapshot.riwayatStok) ? snapshot.riwayatStok : [];
+  state.riwayatOutputStok = Array.isArray(snapshot.riwayatOutputStok) ? snapshot.riwayatOutputStok : [];
+  state.deletedBarangIds = Array.isArray(snapshot.deletedBarangIds)
+    ? snapshot.deletedBarangIds.map(Number).filter(Number.isFinite)
+    : [];
+  state.keuangan = {
+    pemasukanBulanan: Number(snapshot.keuangan?.pemasukanBulanan) || 0
+  };
+  return true;
+}
+
+function saveLocalCache() {
   const itemMap = Object.fromEntries(state.barang.map((item) => [
     item.id,
     { stok: item.stok, minimum: item.minimum, harga: item.harga }
@@ -134,6 +181,94 @@ function saveManualData() {
   } catch {
     // Aplikasi tetap dapat digunakan jika penyimpanan browser tidak tersedia.
   }
+}
+
+async function saveRemoteData() {
+  if (!remoteSyncEnabled) {
+    return;
+  }
+
+  setSyncStatus("Menyimpan...", "loading");
+  try {
+    const response = await fetch("/api/state", {
+      method: "PUT",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state: createStateSnapshot() })
+    });
+
+    if (response.status === 401) {
+      remoteSyncEnabled = false;
+      showLogin();
+      return;
+    }
+    if (!response.ok) {
+      throw new Error("Gagal menyimpan data.");
+    }
+
+    const result = await response.json();
+    remoteUpdatedAt = result.updatedAt || remoteUpdatedAt;
+    setSyncStatus("Tersinkron", "success");
+  } catch {
+    setSyncStatus("Offline - tersimpan lokal", "error");
+  }
+}
+
+function saveManualData() {
+  saveLocalCache();
+  if (!remoteSyncEnabled) {
+    return;
+  }
+
+  clearTimeout(remoteSaveTimer);
+  remoteSaveTimer = setTimeout(saveRemoteData, 350);
+}
+
+async function loadRemoteData({ silent = false } = {}) {
+  if (!remoteSyncEnabled) {
+    return;
+  }
+
+  if (!silent) {
+    setSyncStatus("Mengambil data...", "loading");
+  }
+
+  try {
+    const response = await fetch("/api/state", {
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+    if (response.status === 401) {
+      remoteSyncEnabled = false;
+      showLogin();
+      return;
+    }
+    if (!response.ok) {
+      throw new Error("Gagal mengambil data.");
+    }
+
+    const result = await response.json();
+    if (result.state && result.updatedAt !== remoteUpdatedAt) {
+      applyStateSnapshot(result.state);
+      remoteUpdatedAt = result.updatedAt;
+      saveLocalCache();
+      renderAll();
+    } else if (!result.state) {
+      await saveRemoteData();
+    }
+    setSyncStatus("Tersinkron", "success");
+  } catch {
+    setSyncStatus("Offline - memakai cache", "error");
+  }
+}
+
+function startSyncPolling() {
+  clearInterval(syncPollTimer);
+  syncPollTimer = setInterval(() => {
+    if (remoteSyncEnabled && document.visibilityState === "visible") {
+      loadRemoteData({ silent: true });
+    }
+  }, 12000);
 }
 
 function categoryName(id) {
@@ -435,22 +570,65 @@ function renderAll() {
   renderStockOutputHistory();
 }
 
-els.loginForm.addEventListener("submit", (event) => {
+els.loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const username = document.querySelector("#username").value.trim();
   const password = document.querySelector("#password").value.trim();
+  const submitButton = event.currentTarget.querySelector("button[type='submit']");
 
-  if (username === "admin" && password === "admin123") {
-    localStorage.setItem("krtLoggedIn", "true");
+  submitButton.disabled = true;
+  els.loginError.textContent = "";
+
+  try {
+    const response = await fetch("/api/auth", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    });
+
+    if (response.status === 503) {
+      if (username !== "admin" || password !== "admin123") {
+        throw new Error("Username atau password salah.");
+      }
+      localStorage.setItem("krtLoggedIn", "true");
+      remoteSyncEnabled = false;
+      setSyncStatus("Mode lokal", "idle");
+      showApp();
+      return;
+    }
+
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.message || "Username atau password salah.");
+    }
+
+    remoteSyncEnabled = true;
+    localStorage.removeItem("krtLoggedIn");
     els.loginError.textContent = "";
+    await loadRemoteData();
     showApp();
-    return;
+    startSyncPolling();
+  } catch (error) {
+    els.loginError.textContent = error.message || "Tidak dapat terhubung ke server.";
+  } finally {
+    submitButton.disabled = false;
   }
-
-  els.loginError.textContent = "Username atau password salah.";
 });
 
-els.logoutBtn.addEventListener("click", () => {
+els.logoutBtn.addEventListener("click", async () => {
+  clearInterval(syncPollTimer);
+  if (remoteSyncEnabled) {
+    try {
+      await fetch("/api/auth", {
+        method: "DELETE",
+        credentials: "same-origin"
+      });
+    } catch {
+      // Cookie tetap akan kedaluwarsa otomatis.
+    }
+  }
+  remoteSyncEnabled = false;
   localStorage.removeItem("krtLoggedIn");
   showLogin();
 });
@@ -640,10 +818,44 @@ els.barangTable.addEventListener("click", (event) => {
   renderAll();
 });
 
-loadManualData();
+async function initializeApp() {
+  loadManualData();
 
-if (localStorage.getItem("krtLoggedIn") === "true") {
-  showApp();
-} else {
-  showLogin();
+  try {
+    const response = await fetch("/api/auth", {
+      credentials: "same-origin",
+      cache: "no-store"
+    });
+    const result = await response.json();
+
+    if (response.status === 503 || result.configured === false) {
+      remoteSyncEnabled = false;
+      if (localStorage.getItem("krtLoggedIn") === "true") {
+        setSyncStatus("Mode lokal", "idle");
+        showApp();
+      } else {
+        showLogin();
+      }
+      return;
+    }
+
+    if (result.authenticated) {
+      remoteSyncEnabled = true;
+      await loadRemoteData();
+      showApp();
+      startSyncPolling();
+    } else {
+      showLogin();
+    }
+  } catch {
+    remoteSyncEnabled = false;
+    if (localStorage.getItem("krtLoggedIn") === "true") {
+      setSyncStatus("Offline - memakai cache", "error");
+      showApp();
+    } else {
+      showLogin();
+    }
+  }
 }
+
+initializeApp();

@@ -316,6 +316,26 @@ select:focus {
   font-weight: 900;
 }
 
+#syncStatus[data-sync-mode="success"] {
+  color: #16734f;
+  font-weight: 800;
+}
+
+#syncStatus[data-sync-mode="loading"] {
+  color: #9a650e;
+  font-weight: 800;
+}
+
+#syncStatus[data-sync-mode="error"] {
+  color: #b43c3c;
+  font-weight: 800;
+}
+
+.primary-btn:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .dashboard-promo {
   isolation: isolate;
   position: relative;

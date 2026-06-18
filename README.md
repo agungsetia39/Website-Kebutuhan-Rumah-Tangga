@@ -2,10 +2,10 @@
 
 Aplikasi inventaris rumah tangga berbasis HTML, CSS, dan JavaScript murni. Tidak memerlukan PHP, MySQL, Node.js, atau XAMPP saat dihosting.
 
-## Login demo
+## Login admin
 
 - Username: `admin`
-- Password: `admin123`
+- Password diatur melalui environment variable `ADMIN_PASSWORD`.
 
 ## Menjalankan secara lokal
 
@@ -30,4 +30,12 @@ npx serve .
 4. Framework preset: **Other**.
 5. Klik **Deploy**.
 
-Data aplikasi disimpan di `localStorage` browser. Data bersifat lokal untuk setiap browser/perangkat dan tidak tersinkron antar pengguna.
+## Sinkronisasi lintas perangkat
+
+Pasang integrasi **Neon Postgres** pada proyek Vercel, kemudian tambahkan:
+
+- `DATABASE_URL`: otomatis tersedia dari integrasi Neon.
+- `ADMIN_PASSWORD`: password akun admin.
+- `SESSION_SECRET`: teks acak panjang minimal 32 karakter.
+
+Setelah redeploy, data akun admin tersimpan di database dan tersinkron di semua perangkat. `localStorage` tetap digunakan sebagai cache dan mode cadangan jika server belum dikonfigurasi.
