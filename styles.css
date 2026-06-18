@@ -470,29 +470,64 @@ td {
 
 .table-wrap {
   overflow: auto;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #f7fbf8 0%, #eef5ff 52%, #fff8ec 100%);
+  box-shadow: 0 16px 38px rgba(31, 75, 57, 0.12);
+  padding: 10px;
 }
 
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 9px;
   min-width: 1180px;
 }
 
 th,
 td {
-  border-bottom: 1px solid var(--line);
-  padding: 14px 16px;
+  border: 0;
+  padding: 12px 10px;
   text-align: left;
 }
 
 th {
-  color: var(--ink);
-  font-size: 13px;
+  background: linear-gradient(135deg, #174b37 0%, #277254 55%, #315d89 100%);
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
-tr:last-child td {
-  border-bottom: 0;
+th:first-child {
+  border-radius: 12px 0 0 12px;
+}
+
+th:last-child {
+  border-radius: 0 12px 12px 0;
+}
+
+tbody tr {
+  filter: drop-shadow(0 5px 9px rgba(35, 62, 48, 0.07));
+}
+
+tbody td {
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--ink);
+  vertical-align: middle;
+}
+
+tbody td:first-child {
+  border-radius: 12px 0 0 12px;
+}
+
+tbody td:last-child {
+  border-radius: 0 12px 12px 0;
+}
+
+tbody tr:hover td {
+  background: #fff;
 }
 
 .record-grid {
@@ -506,7 +541,47 @@ tr:last-child td {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  min-width: 150px;
+  min-width: 160px;
+}
+
+.data-box {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  border: 1px solid rgba(39, 114, 84, 0.1);
+  border-radius: 10px;
+  color: #24332b;
+  padding: 9px 12px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.data-box-name {
+  width: 100%;
+  background: linear-gradient(135deg, #e9f7ee, #f7fcf9);
+  color: #174b37;
+}
+
+.data-box-category {
+  background: linear-gradient(135deg, #eaf2fc, #f7faff);
+  color: #244f79;
+  font-weight: 800;
+}
+
+.data-box-stock {
+  background: linear-gradient(135deg, #e9f8f2, #f5fffa);
+  color: #176044;
+}
+
+.data-box-minimum {
+  background: linear-gradient(135deg, #fff2dc, #fffaf0);
+  color: #8a5315;
+}
+
+.data-box-price {
+  background: linear-gradient(135deg, #f2ecff, #fbf9ff);
+  color: #58438a;
+  font-weight: 900;
 }
 
 .delete-item-btn {
@@ -534,10 +609,16 @@ tr:last-child td {
   gap: 8px;
   min-width: 680px;
   align-items: end;
+  border: 1px solid rgba(49, 93, 137, 0.12);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f1f7ff 0%, #f7fbf8 55%, #fff8eb 100%);
+  padding: 10px;
 }
 
 .stock-input input {
   min-height: 38px;
+  border-color: rgba(49, 93, 137, 0.2);
+  background: rgba(255, 255, 255, 0.92);
   padding: 0 10px;
 }
 
@@ -570,6 +651,8 @@ tr:last-child td {
 
 .manual-field {
   display: grid;
+  color: #355366;
+  letter-spacing: 0.01em;
 }
 
 .stock-history-panel {

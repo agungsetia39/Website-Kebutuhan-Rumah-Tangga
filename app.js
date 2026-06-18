@@ -273,8 +273,8 @@ function renderBarang() {
 
   els.barangTable.innerHTML = rows.map((item) => `
     <tr>
-      <td>
-        <div class="item-name-cell">
+      <td class="barang-name-column">
+        <div class="item-name-cell data-box data-box-name">
           <strong>${item.nama}</strong>
           <button
             type="button"
@@ -282,15 +282,15 @@ function renderBarang() {
             data-delete-item="${item.id}"
             aria-label="Hapus ${item.nama}"
             title="Hapus barang"
-          >−</button>
+          >&minus;</button>
         </div>
       </td>
-      <td>${categoryName(item.kategoriId)}</td>
-      <td>${item.stok} ${item.satuan}</td>
-      <td>${item.minimum} ${item.satuan}</td>
-      <td>${formatter.format(item.harga)}</td>
+      <td><span class="data-box data-box-category">${categoryName(item.kategoriId)}</span></td>
+      <td><span class="data-box data-box-stock"><strong>${item.stok}</strong> ${item.satuan}</span></td>
+      <td><span class="data-box data-box-minimum"><strong>${item.minimum}</strong> ${item.satuan}</span></td>
+      <td><span class="data-box data-box-price">${formatter.format(item.harga)}</span></td>
       <td><span class="status ${isLowStock(item) ? "warn" : "safe"}">${isLowStock(item) ? "Menipis" : "Aman"}</span></td>
-      <td>
+      <td class="stock-control-column">
         <form class="stock-input" data-stock-form="${item.id}">
           <label class="manual-field">
             Input Stok
