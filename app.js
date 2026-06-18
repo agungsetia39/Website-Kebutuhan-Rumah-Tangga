@@ -27,11 +27,6 @@ const state = {
     { id: 1, anggotaId: 2, tanggal: "2026-06-17", toko: "Toko Sembako Makmur", total: 197000, metode: "Tunai", catatan: "Belanja mingguan" },
     { id: 2, anggotaId: 1, tanggal: "2026-06-17", toko: "Minimarket Sejahtera", total: 78000, metode: "QRIS", catatan: "Tambahan perlengkapan rumah" }
   ],
-  penggunaan: [
-    { barangId: 1, anggotaId: 2, tanggal: "2026-06-17", jumlah: 1, keperluan: "Masak harian", catatan: "-" },
-    { barangId: 2, anggotaId: 2, tanggal: "2026-06-17", jumlah: 0.25, keperluan: "Menggoreng lauk", catatan: "-" },
-    { barangId: 7, anggotaId: 3, tanggal: "2026-06-17", jumlah: 0.1, keperluan: "Mencuci piring", catatan: "Perkiraan pemakaian" }
-  ],
   riwayatStok: [],
   riwayatOutputStok: [],
   keuangan: {
@@ -135,14 +130,6 @@ function saveManualData() {
 
 function categoryName(id) {
   return state.kategori.find((item) => item.id === id)?.nama ?? "-";
-}
-
-function memberName(id) {
-  return state.anggota.find((item) => item.id === id)?.nama ?? "-";
-}
-
-function itemName(id) {
-  return state.barang.find((item) => item.id === id)?.nama ?? "-";
 }
 
 function isLowStock(item) {
@@ -405,26 +392,6 @@ function renderBelanja() {
   `).join("");
 }
 
-function renderPenggunaan() {
-  document.querySelector("#penggunaanList").innerHTML = state.penggunaan.map((item, index) => `
-    <article class="record-card">
-      <header>
-        <div>
-          <h2>${itemName(item.barangId)}</h2>
-          <span class="item-meta">${item.keperluan}</span>
-        </div>
-        <span class="status safe">#${index + 1}</span>
-      </header>
-      <dl>
-        <div><dt>Tanggal</dt><dd>${item.tanggal}</dd></div>
-        <div><dt>Dipakai Oleh</dt><dd>${memberName(item.anggotaId)}</dd></div>
-        <div><dt>Jumlah</dt><dd>${item.jumlah}</dd></div>
-        <div><dt>Catatan</dt><dd>${item.catatan}</dd></div>
-      </dl>
-    </article>
-  `).join("");
-}
-
 function switchSection(section) {
   document.querySelectorAll(".section-view").forEach((view) => view.classList.add("is-hidden"));
   document.querySelector(`#${section}Section`).classList.remove("is-hidden");
@@ -442,7 +409,6 @@ function renderAll() {
   renderCategoryFilter();
   renderBarang();
   renderBelanja();
-  renderPenggunaan();
   renderStockHistory();
   renderStockOutputHistory();
 }
