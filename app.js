@@ -459,6 +459,10 @@ els.navItems.forEach((item) => {
   item.addEventListener("click", () => switchSection(item.dataset.section));
 });
 
+document.querySelectorAll("[data-section-target]").forEach((button) => {
+  button.addEventListener("click", () => switchSection(button.dataset.sectionTarget));
+});
+
 els.searchBarang.addEventListener("input", renderBarang);
 els.filterKategori.addEventListener("change", renderBarang);
 
