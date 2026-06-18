@@ -501,11 +501,38 @@ tr:last-child td {
   gap: 16px;
 }
 
+.item-name-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 150px;
+}
+
+.delete-item-btn {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #feecec;
+  color: var(--danger);
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.delete-item-btn:hover {
+  background: #fbd8d8;
+}
+
 .stock-input {
   display: grid;
-  grid-template-columns: repeat(4, minmax(104px, 1fr)) 84px;
+  grid-template-columns: repeat(4, minmax(104px, 1fr)) 172px;
   gap: 8px;
-  min-width: 580px;
+  min-width: 680px;
   align-items: end;
 }
 
@@ -514,13 +541,31 @@ tr:last-child td {
   padding: 0 10px;
 }
 
-.stock-input button {
+.stock-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.stock-actions button {
   min-height: 38px;
   border: 0;
   border-radius: 8px;
+  font-weight: 800;
+}
+
+.save-stock-btn {
   background: var(--green);
   color: #fff;
-  font-weight: 800;
+}
+
+.reset-stock-btn {
+  background: #fff2dc;
+  color: #9b5d12;
+}
+
+.reset-stock-btn:hover {
+  background: #ffe5b8;
 }
 
 .manual-field {

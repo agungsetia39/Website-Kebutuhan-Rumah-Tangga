@@ -265,7 +265,20 @@ function renderBarang() {
 
   els.barangTable.innerHTML = rows.map((item) => `
     <tr>
-      <td><strong>${item.nama}</strong></td>
+      <td>
+        <div class="item-name-cell">
+          <strong>${item.nama}</strong>
+          ${item.custom ? `
+            <button
+              type="button"
+              class="delete-item-btn"
+              data-delete-item="${item.id}"
+              aria-label="Hapus ${item.nama}"
+              title="Hapus barang"
+            >−</button>
+          ` : ""}
+        </div>
+      </td>
       <td>${categoryName(item.kategoriId)}</td>
       <td>${item.stok} ${item.satuan}</td>
       <td>${item.minimum} ${item.satuan}</td>
@@ -289,7 +302,10 @@ function renderBarang() {
             Harga
             <input name="harga" type="number" min="0" step="100" value="${item.harga}" aria-label="Estimasi harga ${item.nama}">
           </label>
-          <button type="submit">Simpan</button>
+          <div class="stock-actions">
+            <button type="submit" class="save-stock-btn">Simpan</button>
+            <button type="button" class="reset-stock-btn" data-reset-item="${item.id}">Reset</button>
+          </div>
         </form>
       </td>
     </tr>
@@ -565,6 +581,44 @@ els.barangTable.addEventListener("submit", (event) => {
     });
   }
 
+  saveManualData();
+  renderAll();
+});
+
+els.barangTable.addEventListener("click", (event) => {
+  const deleteButton = event.target.closest("[data-delete-item]");
+  if (deleteButton) {
+    const id = Number(deleteButton.dataset.deleteItem);
+    const item = state.barang.find((barang) => barang.id === id);
+
+    if (!item?.custom || !window.confirm(`Hapus barang "${item.nama}" beserta seluruh riwayatnya?`)) {
+      return;
+    }
+
+    state.barang = state.barang.filter((barang) => barang.id !== id);
+    state.riwayatStok = state.riwayatStok.filter((record) => record.barangId !== id);
+    state.riwayatOutputStok = state.riwayatOutputStok.filter((record) => record.barangId !== id);
+    saveManualData();
+    renderAll();
+    return;
+  }
+
+  const resetButton = event.target.closest("[data-reset-item]");
+  if (!resetButton) {
+    return;
+  }
+
+  const id = Number(resetButton.dataset.resetItem);
+  const item = state.barang.find((barang) => barang.id === id);
+  if (!item || !window.confirm(`Reset stok, minimum, harga, dan riwayat "${item.nama}"?`)) {
+    return;
+  }
+
+  item.stok = 0;
+  item.minimum = 0;
+  item.harga = 0;
+  state.riwayatStok = state.riwayatStok.filter((record) => record.barangId !== id);
+  state.riwayatOutputStok = state.riwayatOutputStok.filter((record) => record.barangId !== id);
   saveManualData();
   renderAll();
 });
