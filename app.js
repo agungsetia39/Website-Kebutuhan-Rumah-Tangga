@@ -29,6 +29,7 @@ const state = {
   ],
   riwayatStok: [],
   riwayatOutputStok: [],
+  deletedBarangIds: [],
   keuangan: {
     pemasukanBulanan: 0
   }
@@ -76,6 +77,7 @@ function loadManualData() {
   const savedCustomItems = readStorage("krtCustomItems", []);
   const savedInputHistory = readStorage("krtStockHistory", []);
   const savedOutputHistory = readStorage("krtStockOutputHistory", []);
+  const savedDeletedItems = readStorage("krtDeletedItems", []);
   const savedFinance = readStorage("krtFinance", {});
 
   if (Array.isArray(savedCustomItems)) {
@@ -94,6 +96,11 @@ function loadManualData() {
       }
     });
   }
+
+  state.deletedBarangIds = Array.isArray(savedDeletedItems)
+    ? savedDeletedItems.map(Number).filter(Number.isFinite)
+    : [];
+  state.barang = state.barang.filter((item) => !state.deletedBarangIds.includes(item.id));
 
   state.barang.forEach((item) => {
     const savedItem = savedItems[item.id];
@@ -122,6 +129,7 @@ function saveManualData() {
     localStorage.setItem("krtCustomItems", JSON.stringify(state.barang.filter((item) => item.custom)));
     localStorage.setItem("krtStockHistory", JSON.stringify(state.riwayatStok.slice(0, 20)));
     localStorage.setItem("krtStockOutputHistory", JSON.stringify(state.riwayatOutputStok.slice(0, 20)));
+    localStorage.setItem("krtDeletedItems", JSON.stringify(state.deletedBarangIds));
     localStorage.setItem("krtFinance", JSON.stringify(state.keuangan));
   } catch {
     // Aplikasi tetap dapat digunakan jika penyimpanan browser tidak tersedia.
@@ -268,15 +276,13 @@ function renderBarang() {
       <td>
         <div class="item-name-cell">
           <strong>${item.nama}</strong>
-          ${item.custom ? `
-            <button
-              type="button"
-              class="delete-item-btn"
-              data-delete-item="${item.id}"
-              aria-label="Hapus ${item.nama}"
-              title="Hapus barang"
-            >−</button>
-          ` : ""}
+          <button
+            type="button"
+            class="delete-item-btn"
+            data-delete-item="${item.id}"
+            aria-label="Hapus ${item.nama}"
+            title="Hapus barang"
+          >−</button>
         </div>
       </td>
       <td>${categoryName(item.kategoriId)}</td>
@@ -494,7 +500,11 @@ els.addBarangForm.addEventListener("submit", (event) => {
     return;
   }
 
-  const nextId = Math.max(...state.barang.map((item) => item.id), 0) + 1;
+  const nextId = Math.max(
+    ...state.barang.map((item) => item.id),
+    ...state.deletedBarangIds,
+    0
+  ) + 1;
   const newItem = {
     id: nextId,
     kategoriId,
@@ -591,10 +601,13 @@ els.barangTable.addEventListener("click", (event) => {
     const id = Number(deleteButton.dataset.deleteItem);
     const item = state.barang.find((barang) => barang.id === id);
 
-    if (!item?.custom || !window.confirm(`Hapus barang "${item.nama}" beserta seluruh riwayatnya?`)) {
+    if (!item || !window.confirm(`Hapus barang "${item.nama}" beserta seluruh riwayatnya?`)) {
       return;
     }
 
+    if (!state.deletedBarangIds.includes(id)) {
+      state.deletedBarangIds.push(id);
+    }
     state.barang = state.barang.filter((barang) => barang.id !== id);
     state.riwayatStok = state.riwayatStok.filter((record) => record.barangId !== id);
     state.riwayatOutputStok = state.riwayatOutputStok.filter((record) => record.barangId !== id);
