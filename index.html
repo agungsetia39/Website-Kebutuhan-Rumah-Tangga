@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Aplikasi inventaris kebutuhan rumah tangga berbasis HTML, CSS, dan JavaScript.">
+    <meta name="theme-color" content="#277254">
+    <title>Kebutuhan Rumah Tangga</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main id="loginView" class="login-shell">
+      <section class="login-media" aria-label="Kebutuhan rumah tangga">
+        <img src="assets/login-hero.png" alt="Perlengkapan kebutuhan rumah tangga tersusun rapi">
+        <div class="media-overlay">
+          <span class="brand-mark">KRT</span>
+          <h1>Kebutuhan Rumah Tangga</h1>
+          <p>Kelola stok, belanja, dan pemakaian rumah dalam satu dashboard.</p>
+        </div>
+      </section>
+
+      <section class="login-panel" aria-label="Form login">
+        <form id="loginForm" class="login-form">
+          <div>
+            <p class="eyebrow">Masuk dashboard</p>
+            <h2>Selamat datang</h2>
+          </div>
+
+          <label>
+            Username
+            <input id="username" type="text" autocomplete="username" placeholder="admin" required>
+          </label>
+
+          <label>
+            Password
+            <input id="password" type="password" autocomplete="current-password" placeholder="admin123" required>
+          </label>
+
+          <p id="loginError" class="form-error" role="alert"></p>
+          <button type="submit" class="primary-btn">Login</button>
+          <p class="hint">Demo: username <strong>admin</strong>, password <strong>admin123</strong></p>
+        </form>
+      </section>
+    </main>
+
+    <main id="appView" class="app-shell is-hidden">
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <span class="brand-mark">KRT</span>
+          <div>
+            <strong>Rumah Tangga</strong>
+            <small>Inventaris keluarga</small>
+          </div>
+        </div>
+
+        <nav class="nav-list" aria-label="Navigasi dashboard">
+          <button class="nav-item is-active" data-section="dashboard">Dashboard</button>
+          <button class="nav-item" data-section="barang">Barang</button>
+          <button class="nav-item" data-section="belanja">Belanja</button>
+          <button class="nav-item" data-section="penggunaan">Penggunaan</button>
+        </nav>
+
+        <button id="logoutBtn" class="logout-btn">Logout</button>
+      </aside>
+
+      <section class="content-shell">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Database kebutuhan_rumah_tangga</p>
+            <h1 id="pageTitle">Dashboard</h1>
+          </div>
+          <div class="user-pill">
+            <span>A</span>
+            <div>
+              <strong>Admin</strong>
+              <small>Aktif</small>
+            </div>
+          </div>
+        </header>
+
+        <section id="dashboardSection" class="section-view">
+          <div class="metric-grid">
+            <article class="metric-card">
+              <span>Total Barang</span>
+              <strong id="totalBarang">0</strong>
+              <small>Item tersimpan</small>
+            </article>
+            <article class="metric-card">
+              <span>Total Stok</span>
+              <strong id="totalStok">0</strong>
+              <small>Akumulasi satuan</small>
+            </article>
+            <article class="metric-card">
+              <span>Belanja Bulan Ini</span>
+              <strong id="totalBelanja">Rp0</strong>
+              <small>Dari input barang</small>
+            </article>
+            <article class="metric-card">
+              <span>Pemasukan Bulanan</span>
+              <strong id="totalPemasukan">Rp0</strong>
+              <small>Uang belanja bulan ini</small>
+            </article>
+            <article class="metric-card">
+              <span>Sisa Uang Belanja</span>
+              <strong id="sisaUangBelanja">Rp0</strong>
+              <small>Pemasukan dikurangi input barang</small>
+            </article>
+            <article class="metric-card">
+              <span>Stok Menipis</span>
+              <strong id="stokMenipis">0</strong>
+              <small>Perlu dicek</small>
+            </article>
+          </div>
+
+          <div class="dashboard-grid">
+            <section class="panel">
+              <div class="panel-heading">
+                <h2>Stok Mendekati Minimum</h2>
+                <span id="lowStockBadge">0 item</span>
+              </div>
+              <div id="lowStockList" class="stack-list"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <h2>Ringkasan Belanja</h2>
+                <span>Terbaru</span>
+              </div>
+              <div id="purchaseSummary" class="stack-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="barangSection" class="section-view is-hidden">
+          <div class="toolbar">
+            <input id="searchBarang" type="search" placeholder="Cari barang atau kategori">
+            <select id="filterKategori" aria-label="Filter kategori">
+              <option value="all">Semua kategori</option>
+            </select>
+          </div>
+          <section class="panel add-item-panel">
+            <div class="panel-heading">
+              <h2>Tambah Barang</h2>
+              <span>Manual</span>
+            </div>
+            <form id="addBarangForm" class="add-item-form">
+              <label>
+                Nama Barang
+                <input name="nama" type="text" placeholder="Contoh: Kopi" required>
+              </label>
+              <label>
+                Kategori
+                <select id="addKategori" name="kategoriId" required></select>
+              </label>
+              <label>
+                Satuan
+                <input name="satuan" type="text" placeholder="kg / botol / pack" required>
+              </label>
+              <label>
+                Stok Awal
+                <input name="stok" type="number" min="0" step="0.01" value="0" required>
+              </label>
+              <label>
+                Minimum
+                <input name="minimum" type="number" min="0" step="0.01" value="0" required>
+              </label>
+              <label>
+                Harga
+                <input name="harga" type="number" min="0" step="100" value="0" required>
+              </label>
+              <button type="submit" class="primary-btn">Tambah</button>
+            </form>
+          </section>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Barang</th>
+                  <th>Kategori</th>
+                  <th>Stok</th>
+                  <th>Minimum</th>
+                  <th>Estimasi Harga</th>
+                  <th>Status</th>
+                  <th>Atur Manual</th>
+                </tr>
+              </thead>
+              <tbody id="barangTable"></tbody>
+            </table>
+          </div>
+          <div class="history-grid">
+            <section class="panel stock-history-panel">
+              <div class="panel-heading">
+                <h2>Riwayat Input Stok</h2>
+                <div class="history-actions">
+                  <span id="stockHistoryCount">0 data</span>
+                  <button id="clearInputHistoryBtn" type="button" class="clear-history-btn">Bersihkan Semua Riwayat</button>
+                </div>
+              </div>
+              <div id="stockHistoryList" class="stack-list"></div>
+            </section>
+
+            <section class="panel stock-history-panel">
+              <div class="panel-heading">
+                <h2>Riwayat Output Stok</h2>
+                <div class="history-actions">
+                  <span id="stockOutputHistoryCount">0 data</span>
+                  <button id="clearOutputHistoryBtn" type="button" class="clear-history-btn">Bersihkan Semua Riwayat</button>
+                </div>
+              </div>
+              <div id="stockOutputHistoryList" class="stack-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section id="belanjaSection" class="section-view is-hidden">
+          <section class="panel finance-panel">
+            <div class="panel-heading">
+              <h2>Keuangan Belanja Bulanan</h2>
+              <span id="financeMonthLabel">Bulan ini</span>
+            </div>
+            <form id="monthlyIncomeForm" class="finance-form">
+              <label>
+                Total Pemasukan Bulanan
+                <input id="monthlyIncome" name="monthlyIncome" type="number" min="0" step="1000" value="0" required>
+              </label>
+              <button type="submit" class="primary-btn">Simpan</button>
+            </form>
+          </section>
+          <div class="finance-summary-grid">
+            <article class="metric-card">
+              <span>Pemasukan Bulanan</span>
+              <strong id="belanjaPemasukan">Rp0</strong>
+              <small>Diisi manual</small>
+            </article>
+            <article class="metric-card">
+              <span>Belanja Barang Bulan Ini</span>
+              <strong id="belanjaBarangBulanIni">Rp0</strong>
+              <small>Sinkron dari input stok</small>
+            </article>
+            <article class="metric-card">
+              <span>Sisa Uang Belanja</span>
+              <strong id="belanjaSisaUang">Rp0</strong>
+              <small>Otomatis terhitung</small>
+            </article>
+          </div>
+          <div id="belanjaList" class="record-grid"></div>
+        </section>
+
+        <section id="penggunaanSection" class="section-view is-hidden">
+          <div id="penggunaanList" class="record-grid"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
