@@ -207,8 +207,9 @@ select:focus {
   height: 100vh;
   flex-direction: column;
   gap: 28px;
-  border-right: 1px solid var(--line);
-  background: #fff;
+  border-right: 1px solid #084d70;
+  background: #08678f;
+  box-shadow: 8px 0 28px rgba(5, 55, 82, 0.16);
   padding: 24px;
 }
 
@@ -219,7 +220,19 @@ select:focus {
   gap: 12px;
 }
 
-.sidebar-brand small,
+.sidebar-brand strong {
+  color: #fff;
+}
+
+.sidebar-brand small {
+  color: #c9edfb;
+}
+
+.sidebar .brand-mark {
+  background: #20a47a;
+  box-shadow: 0 8px 18px rgba(0, 43, 61, 0.22);
+}
+
 .user-pill small {
   display: block;
   margin-top: 3px;
@@ -234,24 +247,35 @@ select:focus {
 .nav-item {
   min-height: 44px;
   background: transparent;
-  color: var(--muted);
+  color: #d7f2fc;
   padding: 0 14px;
   text-align: left;
   font-weight: 800;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
-.nav-item:hover,
+.nav-item:hover {
+  background: #157da6;
+  color: #fff;
+  transform: translateX(3px);
+}
+
 .nav-item.is-active {
-  background: var(--surface-2);
-  color: var(--green-dark);
+  background: #fff;
+  color: #07577b;
+  box-shadow: 0 8px 18px rgba(2, 52, 76, 0.18);
 }
 
 .logout-btn {
   margin-top: auto;
   min-height: 44px;
-  background: #feecec;
-  color: var(--danger);
+  background: #ffd9d9;
+  color: #a62525;
   font-weight: 800;
+}
+
+.logout-btn:hover {
+  background: #ffc4c4;
 }
 
 .content-shell {
